@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Recommendation</title>
+    <!-- Include your CSS file -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- jQuery for AJAX -->
+  </head>
+
+  <body>
+    <div class="song-container">
+      {% for song in songs %}
+      <div class="song">
+        <img src="{{ song.cover_image_url }}" alt="{{ song.title }} cover" />
+        <h3>{{ song.title }}</h3>
+        <p>by {{ song.artist }}</p>
+        <button class="play-button" data-song-id="{{ song.title }}">
+          Play
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        // Use .on() to delegate the event to dynamically added elements
+        $(document).on("click", ".play-button", function () {
+          const songId = $(this).data("song-id");
+
+          $.ajax({
+            url: `/song_click/${songId}`,
+            type: "POST",
+            success: function (response) {
+              console.log(response); // Debugging output
+              if (response.recommended_songs) {
+                // Update the songs displayed on the page with recommended songs
+                $(".song-container").empty(); // Clear current songs
+                response.recommended_songs.forEach((song) => {
+                  $(".song-container").append(`
+              <div class="song">
+                <img src="${song.cover_image_url}" alt="${song.title} cover" />
+                <h3>${song.title}</h3>
+                <p>by ${song.artist}</p>
+                <button class="play-button" data-song-id="${song.title}">Play</button>
+              </div>
+            `);
+                });
+              }
+            },
+            error: function (xhr, status, error) {
+              console.error("Error occurred:", error);
+            },
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
